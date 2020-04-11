@@ -9,6 +9,15 @@ def NKron(*args):
         result = np.kron(result, op)
     return result
 
+def NDot(*args):
+    """Normal matrix multiplication using np.dot(a,b)"""
+    if len(args) < 2: 
+        raise ValueError("NDot needs at least 2 matrices to multiply")
+    result = args[0]
+    for op in args[1:]: 
+        result = np.dot(result, op)
+    return result
+
 I = np.eye(2, dtype='complex128')
 X = np.array([[0, 1], [1, 0]], dtype='complex128')
 Y = np.array([[0, -1j], [1j, 0]], dtype='complex128')
