@@ -8,6 +8,8 @@ CX = np.array([[1, 0, 0, 0],
                [0, 1, 0, 0], 
                [0, 0, 0, 1], 
                [0, 0, 1, 0]], dtype='complex128')
+ket_0 = np.array([[1], [0]], dtype='complex128')
+ket_1 = np.array([[0], [1]], dtype='complex128')
 
 def NKron(*args):
     """Calculate a Kronecker product over variable number of inputs. Credit 
@@ -28,9 +30,17 @@ def NDot(*args):
     return result
 
 def array_eq(a, b, tol):
+    """
+    Checks if matrix a is equal to matrix b by doing elementwise 
+    comparisons, allowing tolerance tol. 
+    """
     if a.shape != b.shape: 
         return False 
     for index, x in np.ndenumerate(a):
         if np.abs(x - b[index]) > tol:
             return False 
     return True
+
+def adjoint(u):
+    """Returns conjugate transpose of u."""
+    return np.transpose(np.conjugate(u))

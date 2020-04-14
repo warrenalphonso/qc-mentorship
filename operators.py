@@ -12,7 +12,7 @@ class FermionicOperator:
         type : str 
             The type of operator: 'creation' or 'annihilation'.
         spin : str 
-            Spin of the particle the operator acts on. 
+            Spin of the particle the operator acts on: 'up' or 'down'.
         site : int < num_sites
             The index of the site this operator is acting on. 
             We'll calculate which 
@@ -24,7 +24,7 @@ class FermionicOperator:
             The number of sites in a system. 
         dim : int 
             The number of qubits used. 
-        JW : 2**dim x 2**dim matrix 
+        JW : (2**dim, 2**dim) matrix 
             Jordan-Wigner transformation of operator. The lowest qubit is on 
             the *LEFT* ie |10> = [0, 0, 1, 0]. 
         JW_str : str 
@@ -118,6 +118,7 @@ class AnnihilationOperator(FermionicOperator):
                                                num_sites)
 
 # TESTS
+tol = 0.005
 
 class TestCreationOperator(unittest.TestCase): 
     def test_init(self): 
@@ -150,28 +151,28 @@ class TestAntiCommutationRelations(unittest.TestCase):
         a_0 = AnnihilationOperator('up', 0, 1)
         anti_comm = NDot(c_0.JW, a_0.JW) + NDot(a_0.JW, c_0.JW)
         i_4 = np.eye(2**c_0.dim)
-        self.assertTrue(array_eq(anti_comm, i_4, 0.005))
+        self.assertTrue(array_eq(anti_comm, i_4, tol))
     
     def test_same_site_diff_spin_one_dim(self):
         c_0 = CreationOperator('up', 0, 1)
         a_0 = AnnihilationOperator('down', 0, 1)
         anti_comm = NDot(c_0.JW, a_0.JW) + NDot(a_0.JW, c_0.JW)
         z_4 = np.zeros((2**c_0.dim, 2**c_0.dim))
-        self.assertTrue(array_eq(anti_comm, z_4, 0.005))
+        self.assertTrue(array_eq(anti_comm, z_4, tol))
 
     def test_diff_site_same_spin_two_dim(self):
         c_0 = CreationOperator('down', 0, 2)
         a_1 = AnnihilationOperator('down', 1, 2)
         anti_comm = NDot(c_0.JW, a_1.JW) + NDot(a_1.JW, c_0.JW)
         z_16 = np.zeros((2**c_0.dim, 2**c_0.dim))
-        self.assertTrue(array_eq(anti_comm, z_16, 0.005))
+        self.assertTrue(array_eq(anti_comm, z_16, tol))
         
     def test_diff_site_diff_spin_two_dim(self):
         c_0 = CreationOperator('up', 0, 2)
         a_1 = AnnihilationOperator('down', 1, 2)
         anti_comm = NDot(c_0.JW, a_1.JW) + NDot(a_1.JW, c_0.JW)
         z_16 = np.zeros((2**c_0.dim, 2**c_0.dim))
-        self.assertTrue(array_eq(anti_comm, z_16, 0.005))
+        self.assertTrue(array_eq(anti_comm, z_16, tol))
 
     # TODO: more complex tests for anti-commutator 
 
@@ -180,14 +181,43 @@ class TestAntiCommutationRelations(unittest.TestCase):
         c_2 = CreationOperator('down', 2, 3)
         anti_comm = NDot(c_0.JW, c_2.JW) + NDot(c_2.JW, c_0.JW)
         z_64 = np.zeros((2**c_0.dim, 2**c_0.dim))
-        self.assertTrue(array_eq(anti_comm, z_64, 0.005))
+        self.assertTrue(array_eq(anti_comm, z_64, tol))
 
     def test_annihilation_anti(self):
         a_0 = AnnihilationOperator('down', 0, 2)
         a_1 = AnnihilationOperator('down', 1, 2)
         anti_comm = NDot(a_0.JW, a_1.JW) + NDot(a_1.JW, a_0.JW)
         z_16 = np.zeros((2**a_0.dim, 2**a_0.dim))
-        self.assertTrue(array_eq(anti_comm, z_16, 0.005))
+        self.assertTrue(array_eq(anti_comm, z_16, tol))
+
+class TestOnStates(unittest.TestCase):
+    def test_creation_ground(self):
+        c_0 = CreationOperator('up', 0, 1)
+        exc = NDot(c_0.JW, NKron(ket_0, ket_0))
+        # We apply a CreationOperator on leftmost qubit
+        self.assertTrue(array_eq(exc, NKron(ket_1, ket_0), tol))
+
+        c_2 = CreationOperator('up', 2, 3)
+        exc = NDot(c_2.JW, NKron(ket_0, ket_0, ket_0, ket_0, ket_0, ket_0))
+        self.assertTrue(array_eq(exc, NKron(ket_0, ket_0, ket_1, ket_0, ket_0, 
+                                            ket_0), tol))
+
+        c_1 = CreationOperator('down', 1, 2)
+        exc = NDot(c_1.JW, NKron(ket_0, ket_0, ket_0, ket_0))
+        self.assertTrue(array_eq(exc, NKron(ket_0, ket_0, ket_0, ket_1), tol))
+
+    def test_annihilation_ground(self):
+        a_0 = AnnihilationOperator('down', 0, 1)
+        exc = NDot(a_0.JW, NKron(ket_0, ket_0))
+        self.assertTrue(array_eq(exc, NKron(ket_0, [[0], [0]]), tol))
+
+        a_1 = AnnihilationOperator('up', 2, 3)
+        exc = NDot(a_1.JW, NKron(ket_0, ket_0, ket_0, ket_0, ket_0, ket_0))
+        self.assertTrue(array_eq(exc, NKron(ket_0, ket_0, np.array([[0], [0]]), 
+                                            ket_0, ket_0, ket_0), tol))
+
+    # TODO: test on excited states 
+    # TODO: test on more complex states 
 
 if __name__ == '__main__':
     unittest.main()
