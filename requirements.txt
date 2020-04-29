@@ -1,3 +1,4 @@
+ipython
 numpy 
 matplotlib
 scipy==1.4.1
