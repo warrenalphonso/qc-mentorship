@@ -6,7 +6,6 @@ to the root instead of the virtual environment. To check, open the notebook and
 run: 
 ```python 
 import sys 
-sys.path
 sys.executable
 ```
 to make sure it's pointing to the virtual environment. 
