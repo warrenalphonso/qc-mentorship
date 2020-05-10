@@ -4,5 +4,4 @@ matplotlib
 scipy==1.4.1
 openfermion==0.11.0
 qiskit==0.16.2
-pyquil==2.19.0
 openfermioncirq==0.4.0
